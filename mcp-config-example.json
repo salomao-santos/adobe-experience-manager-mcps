@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "aem-docs": {
+      "command": "python",
+      "args": ["-m", "aem_mcp.server"],
+      "cwd": "/path/to/adobe-experience-manager-mcps/src",
+      "env": {}
+    }
+  }
+}
