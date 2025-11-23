@@ -1,4 +1,4 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2024-2025 Salomão Santos (salomaosantos777@gmail.com)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,5 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# This file is part of the adobelabs namespace.
-# It is intentionally minimal to support PEP 420 namespace packages.
+"""aemlabs.aem-documentation-mcp-server"""
+
+__version__ = '0.1.0'

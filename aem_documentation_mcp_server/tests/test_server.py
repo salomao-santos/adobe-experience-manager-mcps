@@ -1,4 +1,4 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2024-2025 Salomão Santos
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 
 import httpx
 import pytest
-from adobelabs.aem_documentation_mcp_server.server import (
+from aemlabs.aem_documentation_mcp_server.server import (
     get_available_services,
     main,
     read_documentation,
@@ -53,7 +53,7 @@ class TestReadDocumentation:
             mock_get.return_value = mock_response
 
             # Test via read_documentation_impl to avoid Field processing issues
-            from adobelabs.aem_documentation_mcp_server.server_utils import read_documentation_impl
+            from aemlabs.aem_documentation_mcp_server.server_utils import read_documentation_impl
 
             result = await read_documentation_impl(ctx, url, 10000, 0, 'test-session')
 
@@ -87,7 +87,7 @@ class TestReadDocumentation:
             mock_get.return_value = mock_response
 
             # Test via read_documentation_impl to avoid Field processing issues
-            from adobelabs.aem_documentation_mcp_server.server_utils import read_documentation_impl
+            from aemlabs.aem_documentation_mcp_server.server_utils import read_documentation_impl
 
             result = await read_documentation_impl(ctx, url, 100, 0, 'test-session')
 
@@ -161,7 +161,7 @@ class TestMain:
 
     def test_main_function(self):
         """Test that main function can be called."""
-        with patch('adobelabs.aem_documentation_mcp_server.server.mcp.run') as mock_run:
-            with patch('adobelabs.aem_documentation_mcp_server.server.logger.info'):
+        with patch('aemlabs.aem_documentation_mcp_server.server.mcp.run') as mock_run:
+            with patch('aemlabs.aem_documentation_mcp_server.server.logger.info'):
                 main()
                 mock_run.assert_called_once()

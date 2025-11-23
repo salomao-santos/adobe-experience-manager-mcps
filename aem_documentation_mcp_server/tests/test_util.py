@@ -1,4 +1,4 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2024-2025 Salomão Santos (salomaosantos777@gmail.com)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 """Tests for utility functions."""
 
 import pytest
-from adobelabs.aem_documentation_mcp_server.util import (
+from aemlabs.aem_documentation_mcp_server.util import (
     extract_content_from_html,
     extract_page_title,
     format_documentation_result,
@@ -71,6 +71,12 @@ class TestExtractContentFromHtml:
         """Test error handling for invalid HTML."""
         result = extract_content_from_html(None)
         assert '<e>Empty HTML content</e>' in result
+
+    def test_fallback_to_body(self):
+        """Test fallback to body when no main content selectors match."""
+        html = '<html><body><p>Content without main selectors</p></body></html>'
+        result = extract_content_from_html(html)
+        assert 'Content without main selectors' in result
 
 
 class TestIsHtmlContent:

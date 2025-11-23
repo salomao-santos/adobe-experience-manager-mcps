@@ -1,4 +1,4 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2024-2025 Salomão Santos (salomaosantos777@gmail.com)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 
 import httpx
 import pytest
-from adobelabs.aem_documentation_mcp_server.server_utils import (
+from aemlabs.aem_documentation_mcp_server.server_utils import (
     read_documentation_impl,
     validate_adobe_url,
 )
@@ -72,6 +72,34 @@ class TestValidateAdobeUrl:
         assert is_valid is True
         assert error_msg is None
 
+    def test_valid_github_acs_url(self):
+        """Test valid github.com/Adobe-Consulting-Services URL."""
+        url = 'https://github.com/Adobe-Consulting-Services/acs-aem-commons'
+        is_valid, error_msg = validate_adobe_url(url)
+        assert is_valid is True
+        assert error_msg is None
+
+    def test_valid_github_netcentric_url(self):
+        """Test valid github.com/Netcentric URL."""
+        url = 'https://github.com/Netcentric/aem-multitenant-demo'
+        is_valid, error_msg = validate_adobe_url(url)
+        assert is_valid is True
+        assert error_msg is None
+
+    def test_valid_github_pages_url(self):
+        """Test valid GitHub Pages URL."""
+        url = 'https://adobe-consulting-services.github.io/acs-aem-commons/'
+        is_valid, error_msg = validate_adobe_url(url)
+        assert is_valid is True
+        assert error_msg is None
+
+    def test_valid_adaptto_pdf_url(self):
+        """Test valid adapt.to PDF URL."""
+        url = 'https://adapt.to/2025/presentations/adaptto-2025-challenges-when-operating-1000-different-aem-applications.pdf'
+        is_valid, error_msg = validate_adobe_url(url)
+        assert is_valid is True
+        assert error_msg is None
+
     def test_valid_sling_url(self):
         """Test valid sling.apache.org URL."""
         url = 'https://sling.apache.org/documentation/bundles/models.html'
@@ -108,11 +136,11 @@ class TestValidateAdobeUrl:
         assert error_msg is None
 
     def test_invalid_github_non_adobe_url(self):
-        """Test invalid github.com URL (not adobe org)."""
+        """Test that non-AEM GitHub URLs are now valid (any org supported)."""
         url = 'https://github.com/other-org/some-repo'
         is_valid, error_msg = validate_adobe_url(url)
-        assert is_valid is False
-        assert 'Invalid URL' in error_msg
+        assert is_valid is True  # Changed: now we support any GitHub org
+        assert error_msg is None
 
     def test_invalid_domain(self):
         """Test invalid domain."""
@@ -205,6 +233,44 @@ class TestReadDocumentationImpl:
             called_url = mock_get.call_args[0][0]
             assert '#section' not in called_url
             assert 'test.html' in called_url
+
+    @pytest.mark.asyncio
+    async def test_youtube_url_handling(self):
+        """Test YouTube URL special handling."""
+        url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+        ctx = MockContext()
+
+        result = await read_documentation_impl(ctx, url, 10000, 0, 'test-session')
+
+        assert 'YouTube Video' in result
+        assert 'dQw4w9WgXcQ' in result
+        assert 'transcript' in result.lower()
+        assert 'Video ID' in result
+
+    @pytest.mark.asyncio
+    async def test_pdf_url_handling(self):
+        """Test PDF URL special handling."""
+        url = 'https://example.com/document.pdf'
+        ctx = MockContext()
+
+        result = await read_documentation_impl(ctx, url, 10000, 0, 'test-session')
+
+        assert 'PDF Document' in result
+        assert 'document.pdf' in result
+        assert 'Download' in result or 'download' in result
+        assert 'PDF' in result
+
+    @pytest.mark.asyncio
+    async def test_adaptto_pdf_handling(self):
+        """Test adaptTo() PDF special handling."""
+        url = 'https://adapt.to/2025/presentations/my-presentation.pdf'
+        ctx = MockContext()
+
+        result = await read_documentation_impl(ctx, url, 10000, 0, 'test-session')
+
+        assert 'PDF Document' in result
+        assert 'adaptTo() Presentation' in result
+        assert 'conference' in result.lower()
 
     @pytest.mark.asyncio
     async def test_pagination(self):

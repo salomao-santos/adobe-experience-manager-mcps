@@ -6,14 +6,18 @@ This MCP server provides tools to access Adobe AEM documentation and related res
 
 ## Features
 
+- **Search Experience League**: Search Adobe documentation with advanced filters (content type, products, roles)
 - **Read Documentation**: Fetch and convert documentation pages to markdown format from:
   - Adobe Official Documentation (Experience League, Developer, HelpX, Docs)
-  - GitHub repositories (adobe organization)
+  - GitHub repositories (any organization: Adobe, ACS, Netcentric, etc.)
+  - GitHub Pages (*.github.io documentation sites)
   - Apache Sling documentation
-  - adaptTo() conference resources
+  - adaptTo() conference resources (all years: 2011-2025+, including PDFs)
   - YouTube videos (with transcript guidance)
   - Adobe Business sites (Summit, etc.)
-- **Get Available Services**: Get a curated list of 22+ AEM services and documentation areas
+- **Get Available Services**: Get a curated list of 30+ AEM services and documentation areas
+- **Hash Fragment Support**: Preserves URL fragments for search pages and adaptTo() schedules (#day-1, #day-2, etc.)
+- **PDF Detection**: Identifies PDF documents and provides download guidance
 
 ## Prerequisites
 
@@ -29,9 +33,9 @@ Configure the MCP server in your MCP client configuration:
 ```json
 {
   "mcpServers": {
-    "adobelabs.aem-documentation-mcp-server": {
+    "aemlabs.aem-documentation-mcp-server": {
       "command": "uvx",
-      "args": ["adobelabs.aem-documentation-mcp-server@latest"],
+      "args": ["aemlabs.aem-documentation-mcp-server@latest"],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
@@ -76,15 +80,58 @@ For corporate environments with proxy servers or firewalls that block certain Us
 
 Examples:
 
+- "Search Experience League for 'sling models' documentation"
+- "Search for AEM component tutorials for developers"
 - "Get available AEM services"
 - "Look up documentation on AEM Cloud Service introduction"
 - "Read the AEM 6.5 documentation and explain key features"
 - "Show me the AEM Project Archetype GitHub README"
 - "Get documentation on Apache Sling Models"
-- "What sessions are at adaptTo() 2025?"
+- "What sessions are at adaptTo() 2024 on day 1?"
+- "What were the sessions at adaptTo() 2012?"
 - "Provide guidance on accessing YouTube transcript for video XYZ"
 
 ## Tools
+
+### search_experience_league
+
+Search Adobe Experience League documentation with advanced filters.
+
+```python
+search_experience_league(
+    query: str,
+    content_types: List[str] = ['Documentation'],
+    products: List[str] = None,
+    roles: List[str] = None,
+    include_all_aem_products: bool = False
+) -> str
+```
+
+**Parameters**:
+- `query`: Search term (e.g., 'sling models', 'component development')
+- `content_types`: Filter by type (Documentation, Tutorial, Troubleshooting, API Reference, etc.)
+- `products`: Filter by Adobe products (e.g., 'Experience Manager', 'Experience Manager|as a Cloud Service')
+- `roles`: Filter by user role (Developer, Admin, User, Leader, etc.)
+- `include_all_aem_products`: Auto-include all AEM variants (Cloud Service, 6.5, Assets, Sites, etc.)
+
+**Examples**:
+```python
+# Search for documentation about sling models
+search_experience_league(query='sling models', content_types=['Documentation'])
+
+# Search for component tutorials for developers
+search_experience_league(
+    query='components',
+    content_types=['Tutorial'],
+    roles=['Developer']
+)
+
+# Search across all AEM products
+search_experience_league(
+    query='authentication',
+    include_all_aem_products=True
+)
+```
 
 ### read_documentation
 
@@ -95,14 +142,17 @@ read_documentation(url: str, max_length: int = 10000, start_index: int = 0) -> s
 ```
 
 **Supported Domains**:
-- **Adobe Official**: experienceleague.adobe.com, developer.adobe.com, helpx.adobe.com, docs.adobe.com, business.adobe.com
-- **GitHub**: github.com/adobe/* (Adobe organization repositories)
+- **Adobe Official**: experienceleague.adobe.com (including /search pages), developer.adobe.com, helpx.adobe.com, docs.adobe.com, business.adobe.com
+- **GitHub**: github.com/* (any organization), *.github.io (GitHub Pages)
 - **Apache Sling**: sling.apache.org
-- **Community Events**: adapt.to (adaptTo() conference)
+- **Community Events**: adapt.to (all years: 2011-2025+, including hash fragments like #day-1 and PDFs)
 - **Video Resources**: youtube.com, youtu.be (provides transcript access guidance)
 
 **Special Features**:
 - YouTube URLs: Provides video information and guidance on accessing transcripts
+- PDF files: Detects PDF documents (e.g., adaptTo() presentations) and provides download instructions
+- Search pages: Preserves hash fragments with search parameters
+- adaptTo() pages: Preserves hash fragments for day navigation (#day-1, #day-2, etc.)
 - Pagination support for long documents via `start_index` and `max_length`
 - Automatic content extraction with platform-specific selectors
 - Session tracking for analytics
@@ -115,11 +165,11 @@ Gets a curated list of AEM ecosystem services and documentation areas.
 get_available_services() -> List[ServiceInfo]
 ```
 
-Returns 22+ resources including:
+Returns 30+ resources including:
 - **Core AEM**: Cloud Service, 6.5, Developer APIs
-- **GitHub Repos**: Project Archetype, Core WCM Components
+- **GitHub Repos**: Project Archetype, Core WCM Components, ACS AEM Commons, Netcentric Tools
 - **Foundation**: Apache Sling Models, Servlets, Eventing
-- **Community**: adaptTo() 2025 Conference, schedules
+- **Community**: adaptTo() 2025, 2024, 2023, Historical archives (2011-2019)
 - **Business**: Adobe Summit
 - **Video**: YouTube channels (Adobe Developers, AEM User Group)
 
@@ -144,7 +194,7 @@ uv pip install -e ".[dev]"
 pytest
 
 # Run with coverage
-pytest --cov=adobelabs
+pytest --cov=aemlabs
 
 # Run live tests (makes real HTTP requests)
 pytest --run-live

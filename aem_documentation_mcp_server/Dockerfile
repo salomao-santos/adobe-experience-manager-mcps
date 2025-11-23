@@ -1,4 +1,4 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2024-2025 Salomão Santos (salomaosantos777@gmail.com)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ RUN apk update && \
 
 # Copy project files
 COPY pyproject.toml README.md LICENSE NOTICE ./
-COPY adobelabs ./adobelabs
+COPY aemlabs ./aemlabs
 
 # Install dependencies
 RUN source $HOME/.local/bin/env && \
@@ -73,4 +73,4 @@ USER app
 WORKDIR /app
 
 # Entry point
-ENTRYPOINT ["adobelabs.aem-documentation-mcp-server"]
+ENTRYPOINT ["aemlabs.aem-documentation-mcp-server"]

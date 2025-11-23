@@ -1,4 +1,4 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2024-2025 Salomão Santos (salomaosantos777@gmail.com)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
 
 import httpx
 import os
-from adobelabs.aem_documentation_mcp_server.util import (
+from aemlabs.aem_documentation_mcp_server.util import (
     extract_content_from_html,
     extract_page_title,
     format_documentation_result,
     is_html_content,
 )
-from adobelabs.aem_documentation_mcp_server.youtube_utils import (
+from aemlabs.aem_documentation_mcp_server.youtube_utils import (
     extract_video_id,
     is_youtube_url,
 )
@@ -33,7 +33,7 @@ from urllib.parse import urlparse
 
 
 try:
-    __version__ = version('adobelabs.aem-documentation-mcp-server')
+    __version__ = version('aemlabs.aem-documentation-mcp-server')
 except Exception:
     from . import __version__
 
@@ -91,9 +91,50 @@ async def read_documentation_impl(
             result, _ = format_documentation_result(url_str, content, start_index, max_length)
             return result
 
-    # Parse URL and remove hash fragment if present
+    # Parse URL and check if it's a PDF file
     parsed_url = urlparse(url_str)
-    clean_url = parsed_url._replace(fragment='').geturl()
+    is_pdf = url_str.lower().endswith('.pdf')
+    
+    if is_pdf:
+        await ctx.info(f'Detected PDF file: {url_str}')
+        # Extract filename from URL
+        filename = parsed_url.path.split('/')[-1]
+        content = f'# PDF Document: {filename}\n\n'
+        content += f'**PDF URL**: {url_str}\n\n'
+        content += f'**Filename**: {filename}\n\n'
+        content += '## Note on PDF Access\n\n'
+        content += 'This is a PDF document. To access the content:\n\n'
+        content += f'1. **Direct Download**: Download the PDF from: {url_str}\n'
+        content += '2. **View in Browser**: Open the URL directly in your browser\n'
+        content += '3. **Extract Text**: Use PDF extraction tools like PyPDF2 or pdfplumber\n\n'
+        content += '**Note**: Automatic PDF text extraction requires additional dependencies '
+        content += '(PyPDF2, pdfplumber) not included in this version.\n\n'
+        
+        # Try to detect if it's an adaptTo() presentation
+        if 'adapt.to' in url_str and '/presentations/' in url_str:
+            content += '## adaptTo() Presentation\n\n'
+            content += 'This appears to be a presentation from the adaptTo() conference. '
+            content += 'These presentations typically contain:\n'
+            content += '- Technical architecture diagrams\n'
+            content += '- Code examples and best practices\n'
+            content += '- Case studies and real-world implementations\n'
+            content += '- Performance optimization techniques\n\n'
+        
+        result, _ = format_documentation_result(url_str, content, start_index, max_length)
+        return result
+
+    # Parse URL and check if it's a search page
+    is_search_page = '/search' in parsed_url.path or (parsed_url.fragment and parsed_url.fragment.startswith('q='))
+    is_adaptto = 'adapt.to' in parsed_url.netloc
+    
+    # For search pages, preserve the hash fragment as it contains search parameters
+    # For adapt.to, preserve hash fragments for day navigation (e.g., #day-1, #day-2)
+    if is_search_page or is_adaptto:
+        clean_url = url_str
+        await ctx.info(f'Detected special page type (search or adapt.to), preserving hash fragment')
+    else:
+        # Remove hash fragment for regular documentation pages
+        clean_url = parsed_url._replace(fragment='').geturl()
 
     # Add session tracking parameter
     separator = '&' if '?' in clean_url else '?'
@@ -165,17 +206,18 @@ def validate_adobe_url(url: str) -> tuple[bool, Optional[str]]:
 
     # Supported Adobe and AEM-related domains
     supported_domains = [
-        # Adobe official domains
+        # Adobe official domains (including search pages)
         r'^https?://experienceleague\.adobe\.com/',
         r'^https?://developer\.adobe\.com/',
         r'^https?://helpx\.adobe\.com/',
         r'^https?://docs\.adobe\.com/',
         r'^https?://business\.adobe\.com/',
-        # Adobe GitHub repositories
-        r'^https?://github\.com/adobe/',
+        # GitHub repositories (any organization, with or without repo path) and GitHub Pages
+        r'^https?://github\.com/[^/]+',
+        r'^https?://[^/]+\.github\.io/',
         # Apache Sling documentation
         r'^https?://sling\.apache\.org/',
-        # adaptTo() conference
+        # adaptTo() conference (all years 2011-2025+, including PDFs)
         r'^https?://adapt\.to/',
         # YouTube channels (Adobe-related)
         r'^https?://(?:www\.)?youtube\.com/',
@@ -187,8 +229,8 @@ def validate_adobe_url(url: str) -> tuple[bool, Optional[str]]:
         return False, (
             f'Invalid URL: {url}. URL must be from supported domains: '
             'Adobe domains (experienceleague, developer, helpx, docs, business), '
-            'GitHub (github.com/adobe/), Apache Sling (sling.apache.org), '
-            'adaptTo() (adapt.to), or YouTube'
+            'GitHub (github.com, *.github.io), Apache Sling (sling.apache.org), '
+            'adaptTo() (adapt.to, including PDFs), or YouTube'
         )
 
     return True, None

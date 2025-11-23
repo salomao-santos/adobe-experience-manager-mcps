@@ -1,4 +1,4 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2024-2025 Salomão Santos (salomaosantos777@gmail.com)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,25 +11,5 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Data models for AWS Documentation MCP Server."""
-
-from pydantic import BaseModel
-from typing import Optional
-
-
-class SearchResult(BaseModel):
-    """Search result from AWS documentation search."""
-
-    rank_order: int
-    url: str
-    title: str
-    query_id: str
-    context: Optional[str] = None
-
-
-class RecommendationResult(BaseModel):
-    """Recommendation result from AWS documentation."""
-
-    url: str
-    title: str
-    context: Optional[str] = None
+# This file is part of the aemlabs namespace.
+# It is intentionally minimal to support PEP 420 namespace packages.

@@ -1,4 +1,4 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2024-2025 Salomão Santos (salomaosantos777@gmail.com)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -55,17 +55,31 @@ def extract_content_from_html(html: str) -> str:
             '.sp-wrapper',
             '.content-container',
             '#article-content-body',
+            # Adobe Experience League search results
+            '.search-results',
+            '.search-results-list',
+            '.search-result-item',
+            'dexter-SearchResults',
+            '.coveo-search-section',
+            '.coveo-result-list',
             # GitHub specific
             'article.markdown-body',
             '.repository-content',
             '#readme',
             '.Box-body',
+            # GitHub Pages (Jekyll, Hugo, etc.)
+            '.post-content',
+            '.page-content',
+            '.content',
+            'article',
             # Apache Sling specific
             '.content',
             '#content',
             # adaptTo() specific
             '.main-content',
             '.content-wrapper',
+            '.schedule-content',
+            '.conference-content',
             # Common selectors
             'main',
             'article',

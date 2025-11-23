@@ -1,4 +1,4 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2024-2025 Salomão Santos (salomaosantos777@gmail.com)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,11 +16,18 @@
 import os
 import sys
 import uuid
-from adobelabs.aem_documentation_mcp_server.models import ServiceInfo
-from adobelabs.aem_documentation_mcp_server.server_utils import (
+from aemlabs.aem_documentation_mcp_server.models import ServiceInfo
+from aemlabs.aem_documentation_mcp_server.server_utils import (
     DEFAULT_USER_AGENT,
     read_documentation_impl,
     validate_adobe_url,
+)
+from aemlabs.aem_documentation_mcp_server.search_utils import (
+    build_experience_league_search_url,
+    EXPERIENCE_MANAGER_PRODUCTS,
+    ALL_PRODUCTS,
+    CONTENT_TYPES,
+    ROLES,
 )
 from loguru import logger
 from mcp.server.fastmcp import Context, FastMCP
@@ -35,7 +42,7 @@ logger.add(sys.stderr, level=os.getenv('FASTMCP_LOG_LEVEL', 'WARNING'))
 SESSION_UUID = str(uuid.uuid4())
 
 mcp = FastMCP(
-    'adobelabs.aem-documentation-mcp-server',
+    'aemlabs.aem-documentation-mcp-server',
     instructions="""
     # Adobe AEM Documentation MCP Server
 
@@ -44,28 +51,40 @@ mcp = FastMCP(
 
     ## Best Practices
 
+    - Use `search_experience_league` to find relevant documentation before reading specific pages
     - Always use `get_available_services` first to see available AEM documentation areas
     - For long documentation pages, make multiple calls to `read_documentation` with different `start_index` values for pagination
     - For very long documents (>30,000 characters), stop reading if you've found the needed information
     - Always cite the documentation URL when providing information to users
-    - Hash fragments in URLs (#section) are automatically removed before fetching
+    - Hash fragments in URLs are preserved for search pages and adapt.to conference schedules
 
     ## Tool Selection Guide
 
+    - Use `search_experience_league` when: You need to find documentation about a specific topic
     - Use `get_available_services` when: You need to know what AEM services and documentation areas are available
     - Use `read_documentation` when: You have a specific documentation URL and need its content converted to markdown
 
     ## Supported Domains
 
-    - experienceleague.adobe.com - Main Adobe Experience League documentation
+    - experienceleague.adobe.com - Main Adobe Experience League documentation (including search)
     - developer.adobe.com - Adobe Developer documentation and APIs
     - helpx.adobe.com - Adobe Help documentation
     - docs.adobe.com - Adobe technical documentation
     - business.adobe.com - Adobe Summit and business resources
-    - github.com/adobe/ - Adobe open source projects and repositories
+    - github.com - GitHub repositories (all organizations, not limited to Adobe)
+    - *.github.io - GitHub Pages documentation sites
     - sling.apache.org - Apache Sling documentation (AEM foundation)
-    - adapt.to - adaptTo() conference content
+    - adapt.to - adaptTo() conference content (all years: 2011-2025+, including PDFs)
     - youtube.com - YouTube videos (Adobe Developers, AEM User Group channels)
+
+    ## Special Features
+
+    - **Experience League Search**: Full search support with filters for content type, products, and roles
+    - **adaptTo() Conference**: Support for all conference years with hash fragment navigation (#day-1, #day-2, etc.)
+    - **PDF Documents**: Detection and guidance for PDF downloads (adaptTo() presentations, etc.)
+    - **GitHub Organizations**: Support for any GitHub organization (Adobe, Netcentric, ACS, etc.)
+    - **GitHub Pages**: Support for documentation hosted on *.github.io
+    - **Search Results**: Preserves hash fragments for search pages to maintain filter parameters
     """,
     dependencies=[
         'pydantic',
@@ -115,8 +134,12 @@ async def read_documentation(
     - https://experienceleague.adobe.com/en/docs/experience-manager-65
     - https://developer.adobe.com/experience-cloud/experience-manager-apis/guides/events/
     - https://github.com/adobe/aem-project-archetype
+    - https://github.com/Adobe-Consulting-Services/acs-aem-commons
+    - https://github.com/Netcentric/aem-multitenant-demo
+    - https://adobe-consulting-services.github.io/acs-aem-commons/
     - https://sling.apache.org/documentation/bundles/models.html
     - https://adapt.to/2025/schedule
+    - https://adapt.to/2025/presentations/adaptto-2025-challenges-when-operating-1000-different-aem-applications.pdf
     - https://www.youtube.com/watch?v=nJ8QTNQEkD8
 
     ## Output Format
@@ -153,6 +176,101 @@ async def read_documentation(
         return error_msg
 
     return await read_documentation_impl(ctx, url_str, max_length, start_index, SESSION_UUID)
+
+
+@mcp.tool()
+async def search_experience_league(
+    ctx: Context,
+    query: str = Field(description='Search query string'),
+    content_types: List[str] = Field(
+        default=['Documentation'],
+        description='Content types to search (Documentation, Tutorial, Troubleshooting, etc.)',
+    ),
+    products: List[str] = Field(
+        default=None,
+        description='Products to filter (e.g., Experience Manager, Experience Manager|as a Cloud Service)',
+    ),
+    roles: List[str] = Field(
+        default=None,
+        description='Roles to filter (Developer, Admin, User, etc.)',
+    ),
+    include_all_aem_products: bool = Field(
+        default=False,
+        description='If true, automatically includes all AEM product variants in the search',
+    ),
+) -> str:
+    """Search Adobe Experience League documentation with filters.
+
+    ## Usage
+
+    This tool generates a search URL for Adobe Experience League and fetches the results.
+    You can filter by content types, products, and roles to narrow down results.
+
+    ## Parameters
+
+    - **query**: The search term (e.g., 'sling models', 'component development')
+    - **content_types**: Filter by content type (default: ['Documentation'])
+      - Options: Documentation, Tutorial, Troubleshooting, API Reference, Release Notes, Best Practices
+    - **products**: Filter by Adobe products (optional)
+      - Examples: 'Experience Manager', 'Experience Manager|as a Cloud Service', 'Experience Manager|6.5'
+    - **roles**: Filter by user role (optional)
+      - Options: Developer, Admin, User, Leader, Architect, Business Practitioner
+    - **include_all_aem_products**: Automatically include all AEM variants (Cloud Service, 6.5, Assets, Sites, etc.)
+
+    ## Examples
+
+    Search for documentation about 'sling models':
+    ```
+    search_experience_league(query='sling models', content_types=['Documentation'])
+    ```
+
+    Search for tutorials about components, for developers:
+    ```
+    search_experience_league(
+        query='components',
+        content_types=['Tutorial'],
+        roles=['Developer']
+    )
+    ```
+
+    Search across all AEM products:
+    ```
+    search_experience_league(
+        query='authentication',
+        include_all_aem_products=True
+    )
+    ```
+
+    Args:
+        ctx: MCP context for logging and error handling
+        query: Search query string
+        content_types: List of content types to filter
+        products: List of products to filter
+        roles: List of roles to filter
+        include_all_aem_products: Include all AEM product variants automatically
+
+    Returns:
+        Search results in markdown format
+    """
+    await ctx.info(f'Searching Experience League for: {query}')
+    
+    # If include_all_aem_products is True, use predefined AEM product list
+    if include_all_aem_products and not products:
+        products = EXPERIENCE_MANAGER_PRODUCTS
+        await ctx.info(f'Including all AEM products in search: {len(products)} products')
+    
+    # Build search URL
+    search_url = build_experience_league_search_url(
+        query=query,
+        content_types=content_types if content_types else None,
+        products=products,
+        roles=roles,
+    )
+    
+    await ctx.info(f'Search URL: {search_url}')
+    
+    # Fetch and return search results
+    return await read_documentation_impl(ctx, search_url, 10000, 0, SESSION_UUID)
 
 
 @mcp.tool()
@@ -258,6 +376,30 @@ async def get_available_services(
             category='tools',
         ),
         ServiceInfo(
+            name='ACS AEM Commons (GitHub)',
+            url='https://github.com/Adobe-Consulting-Services/acs-aem-commons',
+            description='ACS AEM Commons - Collection of reusable AEM components and utilities',
+            category='tools',
+        ),
+        ServiceInfo(
+            name='ACS AEM Commons Documentation',
+            url='https://adobe-consulting-services.github.io/acs-aem-commons/',
+            description='Official documentation for ACS AEM Commons library',
+            category='tools',
+        ),
+        ServiceInfo(
+            name='Netcentric AEM Tools (GitHub)',
+            url='https://github.com/Netcentric',
+            description='Netcentric open source AEM tools and frameworks',
+            category='tools',
+        ),
+        ServiceInfo(
+            name='AEM Multi-Tenant Demo (GitHub)',
+            url='https://github.com/Netcentric/aem-multitenant-demo',
+            description='Multi-tenancy implementation example for AEM',
+            category='tools',
+        ),
+        ServiceInfo(
             name='Coral UI 3 Reference (AEM 6.5)',
             url='https://developer.adobe.com/experience-manager/reference-materials/6-5/coral-ui/coralui3/index.html',
             description='Coral UI 3 component library reference for AEM 6.5',
@@ -291,6 +433,24 @@ async def get_available_services(
             name='adaptTo() 2025 Schedule',
             url='https://adapt.to/2025/schedule',
             description='Full schedule of adaptTo() 2025 conference sessions',
+            category='learning',
+        ),
+        ServiceInfo(
+            name='adaptTo() 2024 Schedule',
+            url='https://adapt.to/2024/schedule',
+            description='adaptTo() 2024 conference sessions and schedule',
+            category='learning',
+        ),
+        ServiceInfo(
+            name='adaptTo() 2023 Schedule',
+            url='https://adapt.to/2023/schedule',
+            description='adaptTo() 2023 conference sessions and schedule',
+            category='learning',
+        ),
+        ServiceInfo(
+            name='adaptTo() Historical Archives',
+            url='https://adapt.to/2012/schedule',
+            description='Historical adaptTo() conferences (2011-2019) - community archives',
             category='learning',
         ),
         ServiceInfo(

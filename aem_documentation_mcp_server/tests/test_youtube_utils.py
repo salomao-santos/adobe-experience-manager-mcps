@@ -1,4 +1,4 @@
-# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2024-2025 Salomão Santos
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 """Tests for YouTube utilities."""
 
 import pytest
-from adobelabs.aem_documentation_mcp_server.youtube_utils import (
+from aemlabs.aem_documentation_mcp_server.youtube_utils import (
     extract_video_id,
     is_youtube_url,
     get_youtube_transcript_url,
