@@ -32,7 +32,8 @@ from aemlabs.aem_documentation_mcp_server.search_utils import (
 from loguru import logger
 from mcp.server.fastmcp import Context, FastMCP
 from pydantic import Field
-from typing import List, Union
+from pydantic.fields import FieldInfo
+from typing import List, Optional, Union
 
 
 # Set up logging
@@ -186,11 +187,11 @@ async def search_experience_league(
         default=['Documentation'],
         description='Content types to search (Documentation, Tutorial, Troubleshooting, etc.)',
     ),
-    products: List[str] = Field(
+    products: Optional[List[str]] = Field(
         default=None,
         description='Products to filter (e.g., Experience Manager, Experience Manager|as a Cloud Service)',
     ),
-    roles: List[str] = Field(
+    roles: Optional[List[str]] = Field(
         default=None,
         description='Roles to filter (Developer, Admin, User, etc.)',
     ),
@@ -254,10 +255,19 @@ async def search_experience_league(
     """
     await ctx.info(f'Searching Experience League for: {query}')
     
+    # Handle FieldInfo objects (when called directly without MCP processing)
+    if isinstance(products, FieldInfo):
+        products = products.default
+    if isinstance(roles, FieldInfo):
+        roles = roles.default
+    if isinstance(content_types, FieldInfo):
+        content_types = content_types.default
+    
     # If include_all_aem_products is True, use predefined AEM product list
-    if include_all_aem_products and not products:
-        products = EXPERIENCE_MANAGER_PRODUCTS
-        await ctx.info(f'Including all AEM products in search: {len(products)} products')
+    if include_all_aem_products:
+        if products is None or (isinstance(products, list) and len(products) == 0):
+            products = EXPERIENCE_MANAGER_PRODUCTS
+            await ctx.info(f'Including all AEM products in search: {len(products)} products')
     
     # Build search URL
     search_url = build_experience_league_search_url(

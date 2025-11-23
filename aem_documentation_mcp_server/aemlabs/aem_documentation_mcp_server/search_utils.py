@@ -57,16 +57,25 @@ def build_experience_league_search_url(
     
     # Add content type filters
     if content_types:
+        # Ensure content_types is a list
+        if isinstance(content_types, str):
+            content_types = [content_types]
         content_type_str = ','.join(content_types)
         params.append(f'f-el_contenttype={quote_plus(content_type_str)}')
     
     # Add product filters
     if products:
+        # Ensure products is a list
+        if isinstance(products, str):
+            products = [products]
         product_str = ','.join(products)
         params.append(f'f-el_product={quote_plus(product_str)}')
     
     # Add role filters
     if roles:
+        # Ensure roles is a list
+        if isinstance(roles, str):
+            roles = [roles]
         role_str = ','.join(roles)
         params.append(f'f-el_role={quote_plus(role_str)}')
     

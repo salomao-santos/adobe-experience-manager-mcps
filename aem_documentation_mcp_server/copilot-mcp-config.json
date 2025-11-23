@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "aem-documentation": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "aem-docs-mcp-server:latest"
+      ],
+      "env": {},
+      "disabled": false,
+      "alwaysAllow": []
+    }
+  }
+}
