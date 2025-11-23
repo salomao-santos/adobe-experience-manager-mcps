@@ -155,7 +155,6 @@ async def read_documentation_impl(
                     'X-MCP-Session-Id': session_uuid,
                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                     'Accept-Language': 'en-US,en;q=0.9',
-                    'Accept-Encoding': 'gzip, deflate, br',
                 },
             )
         except httpx.HTTPError as e:
