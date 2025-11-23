@@ -15,6 +15,7 @@
 
 import httpx
 import os
+from functools import lru_cache
 from aemlabs.aem_documentation_mcp_server.util import (
     extract_content_from_html,
     extract_page_title,
@@ -140,18 +141,22 @@ async def read_documentation_impl(
     separator = '&' if '?' in clean_url else '?'
     url_with_session = f'{clean_url}{separator}session={session_uuid}'
 
-    async with httpx.AsyncClient() as client:
+    # Configure httpx client with optimized settings
+    async with httpx.AsyncClient(
+        timeout=httpx.Timeout(30.0, connect=10.0),
+        limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
+        follow_redirects=True,
+    ) as client:
         try:
             response = await client.get(
                 url_with_session,
-                follow_redirects=True,
                 headers={
                     'User-Agent': DEFAULT_USER_AGENT,
                     'X-MCP-Session-Id': session_uuid,
                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                     'Accept-Language': 'en-US,en;q=0.9',
+                    'Accept-Encoding': 'gzip, deflate, br',
                 },
-                timeout=30,
             )
         except httpx.HTTPError as e:
             error_msg = f'Failed to fetch {url_str}: {str(e)}'
@@ -193,8 +198,11 @@ async def read_documentation_impl(
     return result
 
 
+@lru_cache(maxsize=1000)
 def validate_adobe_url(url: str) -> tuple[bool, Optional[str]]:
     """Validate if URL is from supported Adobe and AEM-related domains.
+
+    This function is cached with LRU cache for better performance on repeated validations.
 
     Args:
         url: URL to validate

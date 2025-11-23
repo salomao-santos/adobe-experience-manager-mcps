@@ -14,6 +14,7 @@
 """Utility functions for Adobe AEM Documentation MCP Server."""
 
 import markdownify
+from functools import lru_cache
 from typing import Optional
 from bs4 import BeautifulSoup
 
