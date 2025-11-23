@@ -28,12 +28,16 @@ This MCP server provides tools to access Adobe AEM documentation and related res
 
 ## Installation
 
+You can run the MCP server using either **UVX** (recommended) or **Docker**. Choose the method that best fits your environment.
+
+### Option 1: Using UVX (Recommended)
+
 Configure the MCP server in your MCP client configuration:
 
 ```json
 {
   "mcpServers": {
-    "aemlabs.aem-documentation-mcp-server": {
+    "aem-documentation-uvx": {
       "command": "uvx",
       "args": ["aemlabs.aem-documentation-mcp-server@latest"],
       "env": {
@@ -45,6 +49,44 @@ Configure the MCP server in your MCP client configuration:
   }
 }
 ```
+
+**Prerequisites for UVX:**
+- Install `uv` from [Astral](https://docs.astral.sh/uv/getting-started/installation/)
+- Python 3.10+ (installed via `uv python install 3.10`)
+
+### Option 2: Using Docker
+
+First, build the Docker image:
+
+```bash
+cd aem_documentation_mcp_server
+docker build -t aem-docs-mcp-server:latest .
+```
+
+Then configure the MCP server:
+
+```json
+{
+  "mcpServers": {
+    "aem-documentation-docker": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "aem-docs-mcp-server:latest"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
+```
+
+**Prerequisites for Docker:**
+- Docker installed and running
+
+### Switching Between UVX and Docker
+
+To switch between modes, set `"disabled": true` on the mode you don't want to use and `"disabled": false` on the one you want to activate.
 
 ### Development Installation
 
