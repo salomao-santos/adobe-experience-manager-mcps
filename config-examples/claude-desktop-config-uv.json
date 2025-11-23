@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "adobe-aem": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/adobe-experience-manager-mcps",
+        "run",
+        "adobe-experience-manager-mcps"
+      ],
+      "description": "Adobe Experience Manager documentation extraction (using uv)"
+    }
+  }
+}

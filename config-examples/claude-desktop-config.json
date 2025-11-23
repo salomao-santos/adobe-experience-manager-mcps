@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "adobe-aem": {
+      "command": "python",
+      "args": [
+        "-m",
+        "adobe_experience_manager_mcps.server"
+      ],
+      "description": "Adobe Experience Manager documentation extraction server"
+    }
+  }
+}
