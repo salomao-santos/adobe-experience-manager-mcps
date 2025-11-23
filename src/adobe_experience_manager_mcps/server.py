@@ -29,6 +29,9 @@ app = Server("adobe-experience-manager-mcps")
 # Global browser instance
 browser: Browser | None = None
 
+# Selectors for elements to remove from the page
+UNWANTED_SELECTORS = 'nav, header, footer, .nav, .header, .footer, .sidebar, .navigation, script, style, .cookie-banner, .feedback, .breadcrumb'
+
 
 async def get_browser() -> Browser:
     """Get or create a browser instance."""
@@ -55,12 +58,12 @@ async def read_aem_doc(url: str) -> str:
         Clean Markdown content suitable for LLM consumption
         
     Raises:
-        ValueError: If URL is not from experienceleague.adobe.com
         Exception: If page loading or parsing fails
     """
     # Validate URL is from Experience League
     parsed = urlparse(url)
-    if not parsed.netloc.endswith('adobe.com'):
+    # Check if the domain is adobe.com or a subdomain of adobe.com
+    if not (parsed.netloc == 'adobe.com' or parsed.netloc.endswith('.adobe.com')):
         logger.warning(f"URL {url} may not be from Adobe Experience League")
     
     browser = await get_browser()
@@ -83,7 +86,7 @@ async def read_aem_doc(url: str) -> str:
         soup = BeautifulSoup(content, 'lxml')
         
         # Remove unwanted elements
-        for element in soup.select('nav, header, footer, .nav, .header, .footer, .sidebar, .navigation, script, style, .cookie-banner, .feedback, .breadcrumb'):
+        for element in soup.select(UNWANTED_SELECTORS):
             element.decompose()
         
         # Try to find main content area

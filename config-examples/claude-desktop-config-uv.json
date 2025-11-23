@@ -4,7 +4,7 @@
       "command": "uv",
       "args": [
         "--directory",
-        "/path/to/adobe-experience-manager-mcps",
+        "/absolute/path/to/your/clone/of/adobe-experience-manager-mcps",
         "run",
         "adobe-experience-manager-mcps"
       ],
