@@ -24,17 +24,21 @@ logger = logging.getLogger(__name__)
 # Initialize MCP server
 app = Server("aem-mcp-server")
 
-# Global browser instance
+# Global browser and playwright instances
 browser: Browser | None = None
+playwright_instance = None
+browser_lock = asyncio.Lock()
 
 
 async def get_browser() -> Browser:
-    """Get or create browser instance."""
-    global browser
-    if browser is None:
-        playwright = await async_playwright().start()
-        browser = await playwright.chromium.launch(headless=True)
-    return browser
+    """Get or create browser instance with thread safety."""
+    global browser, playwright_instance
+    async with browser_lock:
+        if browser is None:
+            from playwright.async_api import async_playwright
+            playwright_instance = await async_playwright().start()
+            browser = await playwright_instance.chromium.launch(headless=True)
+        return browser
 
 
 def extract_main_content(soup: BeautifulSoup) -> BeautifulSoup:

@@ -25,7 +25,7 @@ def test_extract_main_content_removes_nav():
     
     # Check that main content is present
     assert 'Main Content' in str(result)
-    assert 'This is the main content' in str(result)
+    assert 'This is the main content.' in str(result)
     
     # Check that navigation elements are removed
     assert 'Navigation menu' not in str(result)
@@ -52,7 +52,7 @@ def test_extract_main_content_finds_article():
     result = extract_main_content(soup)
     
     assert 'Article Title' in str(result)
-    assert 'Article content' in str(result)
+    assert 'Article content.' in str(result)
     assert 'Nav' not in str(result)
 
 
