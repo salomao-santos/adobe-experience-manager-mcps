@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "aem-documentation-uvx": {
+      "command": "uvx",
+      "args": [
+        "aemlabs.aem-documentation-mcp-server@latest"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "alwaysAllow": []
+    },
+    "aem-documentation-docker": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "aem-docs-mcp-server:latest"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": true,
+      "alwaysAllow": []
+    }
+  }
+}
